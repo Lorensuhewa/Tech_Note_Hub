@@ -3,6 +3,7 @@ import express from 'express';
 
 import { connectDB } from './config/db.js';
 import noteRoutes from './routes/noteRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import errorHandler from './middleware/errorMiddleware.js';
 
 const PORT = process.env.PORT || 5000;
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/notes', noteRoutes);
+app.use('/api/auth', authRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

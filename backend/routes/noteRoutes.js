@@ -8,7 +8,12 @@ import {
     deleteNote,
 } from "../controllers/noteController.js";
 
+import protect from "../middleware/authMiddleware.js";
+
 const router = express.Router();
+
+// all note routes require authentication
+router.use(protect);
 
 // POST /api/notes
 router.post("/", createNote);
