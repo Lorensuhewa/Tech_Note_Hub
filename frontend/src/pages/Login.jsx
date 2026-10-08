@@ -1,8 +1,14 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import api from '../services/api';
+import { useAuth } from '../context/useAuth.js';
 
 function Login() {
+  const navigate = useNavigate();
+
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,28 +28,20 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    setMessage('');
+
     try {
       const response = await api.post(
         '/auth/login',
         formData
       );
 
-      localStorage.setItem(
-        'token',
+      login(
+        response.data.user,
         response.data.token
       );
 
-      localStorage.setItem(
-        'user',
-        JSON.stringify(response.data.user)
-      );
-
-      setMessage('Login successful');
-
-      setFormData({
-        email: '',
-        password: '',
-      });
+      navigate('/dashboard');
     } catch (error) {
       setMessage(
         error.response?.data?.message ||

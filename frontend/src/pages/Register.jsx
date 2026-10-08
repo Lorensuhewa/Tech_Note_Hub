@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import api from '../services/api';
 
 function Register() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,6 +26,8 @@ function Register() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    setMessage('');
+
     try {
       const response = await api.post(
         '/auth/register',
@@ -36,6 +41,10 @@ function Register() {
         email: '',
         password: '',
       });
+
+      setTimeout(() => {
+        navigate('/login');
+      }, 1000);
     } catch (error) {
       setMessage(
         error.response?.data?.message ||
