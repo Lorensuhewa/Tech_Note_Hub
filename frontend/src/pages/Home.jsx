@@ -1,16 +1,37 @@
+import { Link } from 'react-router-dom';
+
+import { useAuth } from '../context/useAuth.js';
+
 function Home() {
+  const { token } = useAuth();
+
   return (
-    <div>
-      <h1>Tech Note Hub</h1>
+    <main>
+      <h1>Welcome to Tech Note Hub</h1>
 
       <p>
-        Welcome to Tech Note Hub.
+        Organize your technical notes in one
+        place.
       </p>
 
-      <p>
-        A simple MERN stack note application.
-      </p>
-    </div>
+      {token ? (
+        <Link to="/dashboard">
+          Go to Dashboard
+        </Link>
+      ) : (
+        <div>
+          <Link to="/login">
+            Login
+          </Link>
+
+          {' '}
+
+          <Link to="/register">
+            Create Account
+          </Link>
+        </div>
+      )}
+    </main>
   );
 }
 

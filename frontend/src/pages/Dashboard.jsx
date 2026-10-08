@@ -1,34 +1,35 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from 'react';
 
-import api from "../services/api";
-import { useAuth } from "../context/useAuth.js";
+import api from '../services/api';
 
-import NoteCard from "../components/NoteCard";
-import NoteForm from "../components/NoteForm";
+import NoteCard from '../components/NoteCard';
+import NoteForm from '../components/NoteForm';
 
 function Dashboard() {
-  const navigate = useNavigate();
-
-  const { user, logout } = useAuth();
-
   const [notes, setNotes] = useState([]);
-  const [editingNote, setEditingNote] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+  const [editingNote, setEditingNote] =
+    useState(null);
 
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState('');
 
   useEffect(() => {
     const loadNotes = async () => {
       try {
-        const response = await api.get("/notes");
+        const response = await api.get('/notes');
 
         setNotes(response.data);
       } catch (error) {
         console.error(error);
 
-        setError(error.response?.data?.message || "Failed to load notes");
+        setError(
+          error.response?.data?.message ||
+            'Failed to load notes'
+        );
       } finally {
         setLoading(false);
       }
@@ -39,35 +40,52 @@ function Dashboard() {
 
   const handleCreateNote = async (noteData) => {
     try {
-      setError("");
+      setError('');
 
-      const response = await api.post("/notes", noteData);
+      const response = await api.post(
+        '/notes',
+        noteData
+      );
 
-      setNotes((previousNotes) => [response.data, ...previousNotes]);
+      setNotes((previousNotes) => [
+        response.data,
+        ...previousNotes,
+      ]);
     } catch (error) {
       console.error(error);
 
-      setError(error.response?.data?.message || "Failed to create note");
+      setError(
+        error.response?.data?.message ||
+          'Failed to create note'
+      );
     }
   };
 
   const handleUpdateNote = async (noteData) => {
     try {
-      setError("");
+      setError('');
 
-      const response = await api.put(`/notes/${editingNote._id}`, noteData);
+      const response = await api.put(
+        `/notes/${editingNote._id}`,
+        noteData
+      );
 
       setNotes((previousNotes) =>
         previousNotes.map((note) =>
-          note._id === editingNote._id ? response.data : note,
-        ),
+          note._id === editingNote._id
+            ? response.data
+            : note
+        )
       );
 
       setEditingNote(null);
     } catch (error) {
       console.error(error);
 
-      setError(error.response?.data?.message || "Failed to update note");
+      setError(
+        error.response?.data?.message ||
+          'Failed to update note'
+      );
     }
   };
 
@@ -81,7 +99,7 @@ function Dashboard() {
 
   const handleDeleteNote = async (noteId) => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this note?",
+      'Are you sure you want to delete this note?'
     );
 
     if (!confirmed) {
@@ -89,12 +107,14 @@ function Dashboard() {
     }
 
     try {
-      setError("");
+      setError('');
 
       await api.delete(`/notes/${noteId}`);
 
       setNotes((previousNotes) =>
-        previousNotes.filter((note) => note._id !== noteId),
+        previousNotes.filter(
+          (note) => note._id !== noteId
+        )
       );
 
       if (editingNote?._id === noteId) {
@@ -103,60 +123,49 @@ function Dashboard() {
     } catch (error) {
       console.error(error);
 
-      setError(error.response?.data?.message || "Failed to delete note");
+      setError(
+        error.response?.data?.message ||
+          'Failed to delete note'
+      );
     }
   };
 
-  const handleLogout = () => {
-    logout();
-
-    navigate("/login");
-  };
-
   return (
-    <div>
-      <header>
-        <h1>Tech Note Hub</h1>
+    <main>
+      <h1>My Notes</h1>
 
-        <div>
-          <span>Welcome, {user?.name || "User"}</span>
+      <NoteForm
+        key={editingNote?._id || 'new'}
+        onSubmit={handleSubmitNote}
+        editingNote={editingNote}
+        onCancel={() => setEditingNote(null)}
+      />
 
-          <button type="button" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </header>
+      <section>
+        <h2>Notes</h2>
 
-      <main>
-        <NoteForm
-          key={editingNote?._id || "new"}
-          onSubmit={handleSubmitNote}
-          editingNote={editingNote}
-          onCancel={() => setEditingNote(null)}
-        />
+        {error && (
+          <p>{error}</p>
+        )}
 
-        <section>
-          <h2>My Notes</h2>
-
-          {error && <p>{error}</p>}
-
-          {loading ? (
-            <p>Loading notes...</p>
-          ) : notes.length === 0 ? (
-            <p>You don't have any notes yet.</p>
-          ) : (
-            notes.map((note) => (
-              <NoteCard
-                key={note._id}
-                note={note}
-                onEdit={setEditingNote}
-                onDelete={handleDeleteNote}
-              />
-            ))
-          )}
-        </section>
-      </main>
-    </div>
+        {loading ? (
+          <p>Loading notes...</p>
+        ) : notes.length === 0 ? (
+          <p>
+            You don't have any notes yet.
+          </p>
+        ) : (
+          notes.map((note) => (
+            <NoteCard
+              key={note._id}
+              note={note}
+              onEdit={setEditingNote}
+              onDelete={handleDeleteNote}
+            />
+          ))
+        )}
+      </section>
+    </main>
   );
 }
 

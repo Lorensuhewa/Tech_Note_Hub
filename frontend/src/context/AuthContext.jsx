@@ -1,9 +1,9 @@
 import {
-  createContext,
+  useEffect,
   useState,
 } from 'react';
 
-export const AuthContext = createContext();
+import AuthContext from './AuthContext.js';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -40,6 +40,24 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
   };
+
+  useEffect(() => {
+    const handleAuthLogout = () => {
+      logout();
+    };
+
+    window.addEventListener(
+      'auth:logout',
+      handleAuthLogout
+    );
+
+    return () => {
+      window.removeEventListener(
+        'auth:logout',
+        handleAuthLogout
+      );
+    };
+  }, []);
 
   return (
     <AuthContext.Provider
