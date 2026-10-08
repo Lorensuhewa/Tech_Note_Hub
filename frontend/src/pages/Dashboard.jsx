@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import api from '../services/api';
-import { useAuth } from '../context/useAuth.js';
+import api from "../services/api";
+import { useAuth } from "../context/useAuth.js";
+
+import NoteCard from "../components/NoteCard";
+import NoteForm from "../components/NoteForm";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -10,59 +13,149 @@ function Dashboard() {
   const { user, logout } = useAuth();
 
   const [notes, setNotes] = useState([]);
-  const [message, setMessage] = useState('');
+  const [editingNote, setEditingNote] = useState(null);
 
-  const handleLogout = () => {
-    logout();
+  const [loading, setLoading] = useState(true);
 
-    navigate('/login');
-  };
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchNotes = async () => {
+    const loadNotes = async () => {
       try {
-        const response = await api.get('/notes');
+        const response = await api.get("/notes");
 
         setNotes(response.data);
       } catch (error) {
         console.error(error);
 
-        setMessage(
-          error.response?.data?.message ||
-            'Failed to load notes'
-        );
+        setError(error.response?.data?.message || "Failed to load notes");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchNotes();
+    loadNotes();
   }, []);
+
+  const handleCreateNote = async (noteData) => {
+    try {
+      setError("");
+
+      const response = await api.post("/notes", noteData);
+
+      setNotes((previousNotes) => [response.data, ...previousNotes]);
+    } catch (error) {
+      console.error(error);
+
+      setError(error.response?.data?.message || "Failed to create note");
+    }
+  };
+
+  const handleUpdateNote = async (noteData) => {
+    try {
+      setError("");
+
+      const response = await api.put(`/notes/${editingNote._id}`, noteData);
+
+      setNotes((previousNotes) =>
+        previousNotes.map((note) =>
+          note._id === editingNote._id ? response.data : note,
+        ),
+      );
+
+      setEditingNote(null);
+    } catch (error) {
+      console.error(error);
+
+      setError(error.response?.data?.message || "Failed to update note");
+    }
+  };
+
+  const handleSubmitNote = async (noteData) => {
+    if (editingNote) {
+      await handleUpdateNote(noteData);
+    } else {
+      await handleCreateNote(noteData);
+    }
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this note?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setError("");
+
+      await api.delete(`/notes/${noteId}`);
+
+      setNotes((previousNotes) =>
+        previousNotes.filter((note) => note._id !== noteId),
+      );
+
+      if (editingNote?._id === noteId) {
+        setEditingNote(null);
+      }
+    } catch (error) {
+      console.error(error);
+
+      setError(error.response?.data?.message || "Failed to delete note");
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+
+    navigate("/login");
+  };
 
   return (
     <div>
-      <h1>Dashboard</h1>
+      <header>
+        <h1>Tech Note Hub</h1>
 
-      <p>
-        Welcome, {user?.name || 'User'}!
-      </p>
+        <div>
+          <span>Welcome, {user?.name || "User"}</span>
 
-      <button onClick={handleLogout}>
-        Logout
-      </button>
+          <button type="button" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+      </header>
 
-      <h2>Your Notes</h2>
+      <main>
+        <NoteForm
+          key={editingNote?._id || "new"}
+          onSubmit={handleSubmitNote}
+          editingNote={editingNote}
+          onCancel={() => setEditingNote(null)}
+        />
 
-      {message && <p>{message}</p>}
+        <section>
+          <h2>My Notes</h2>
 
-      {notes.length === 0 ? (
-        <p>No notes found.</p>
-      ) : (
-        notes.map((note) => (
-          <div key={note._id}>
-            <h3>{note.title}</h3>
-            <p>{note.content}</p>
-          </div>
-        ))
-      )}
+          {error && <p>{error}</p>}
+
+          {loading ? (
+            <p>Loading notes...</p>
+          ) : notes.length === 0 ? (
+            <p>You don't have any notes yet.</p>
+          ) : (
+            notes.map((note) => (
+              <NoteCard
+                key={note._id}
+                note={note}
+                onEdit={setEditingNote}
+                onDelete={handleDeleteNote}
+              />
+            ))
+          )}
+        </section>
+      </main>
     </div>
   );
 }
