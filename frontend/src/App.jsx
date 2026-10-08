@@ -1,34 +1,39 @@
-import { useEffect, useState } from 'react';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from 'react-router-dom';
 
-import api from './services/api';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
 
 function App() {
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    const fetchMessage = async () => {
-      try {
-        const response = await api.get('/');
-        setMessage(response.data.message);
-      } catch (error) {
-        console.error(
-          'Error connecting to backend:',
-          error
-        );
-
-        setMessage('Unable to connect to backend');
-      }
-    };
-
-    fetchMessage();
-  }, []);
-
   return (
-    <div>
-      <h1>Tech Note Hub</h1>
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={<Home />}
+        />
 
-      <p>{message}</p>
-    </div>
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
