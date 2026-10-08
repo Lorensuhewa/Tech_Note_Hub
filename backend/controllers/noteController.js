@@ -8,6 +8,7 @@ export const createNote = asyncHandler(async (req, res) => {
   const note = await Note.create({
     title,
     content,
+    user: req.user._id,
   });
 
   res.status(201).json(note);
@@ -15,14 +16,19 @@ export const createNote = asyncHandler(async (req, res) => {
 
 // Get all notes
 export const getNotes = asyncHandler(async (req, res) => {
-  const notes = await Note.find();
+  const notes = await Note.find({
+    user: req.user._id,
+  });
 
   res.status(200).json(notes);
 });
 
 // Get one note
 export const getNoteById = asyncHandler(async (req, res) => {
-  const note = await Note.findById(req.params.id);
+  const note = await Note.findOne({
+    _id: req.params.id,
+    user: req.user._id,
+  });
 
   if (!note) {
     res.status(404);
@@ -38,14 +44,17 @@ export const updateNote = asyncHandler(async (req, res) => {
   const { title, content } = req.body;
 
   const note = await Note.findByIdAndUpdate(
-    req.params.id,
     {
-      title,
-      content,
+      _id: req.params.id,
+      user: req.user._id,
     },
-    {
-      new: true,
-      runValidators: true,
+    { 
+      title, 
+      content 
+    },
+    { 
+      new: true, 
+      runValidators: true 
     },
   );
 
@@ -60,8 +69,12 @@ export const updateNote = asyncHandler(async (req, res) => {
 
 // Delete a note
 export const deleteNote = asyncHandler(async (req, res) => {
-  const note = await Note.findByIdAndDelete(req.params.id);
-
+  const note = await Note.findOneAndDelete(
+    {
+      _id: req.params.id,
+      user: req.user._id,
+    }
+  );
   if (!note) {
     res.status(404);
 
