@@ -1,5 +1,7 @@
 import 'dotenv/config';
+
 import express from 'express';
+import cors from 'cors';
 
 import { connectDB } from './config/db.js';
 import noteRoutes from './routes/noteRoutes.js';
@@ -14,17 +16,21 @@ const app = express();
 connectDB();
 
 // Middleware
+app.use(cors());
 app.use(express.json());
 
-// Routes
-app.get('/', (req, res) => {
+// API health route
+app.get('/api', (req, res) => {
   res.json({
     message: 'Welcome to MERN Note App API',
   });
 });
 
-app.use('/api/notes', noteRoutes);
+// Authentication routes
 app.use('/api/auth', authRoutes);
+
+// Note routes
+app.use('/api/notes', noteRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
